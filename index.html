@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Is Your Idea Good?</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0a0a0a;
+    color: #fafafa;
+    overflow: hidden;
+  }
+
+  .container {
+    text-align: center;
+    max-width: 600px;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  h1 {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    color: #666;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+  }
+
+  .input-area {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+
+  input {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    border: 2px solid #333;
+    border-radius: 12px;
+    background: #111;
+    color: #fafafa;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+
+  input:focus { border-color: #667eea; }
+  input::placeholder { color: #555; }
+
+  button {
+    padding: 1rem 3rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(102, 126, 234, 0.4);
+  }
+
+  button:active { transform: scale(0.98); }
+
+  .result {
+    margin-top: 2rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s ease;
+  }
+
+  .result.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .verdict {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+  }
+
+  .score-bar {
+    width: 100%;
+    height: 12px;
+    background: #222;
+    border-radius: 6px;
+    margin: 1rem 0;
+    overflow: hidden;
+  }
+
+  .score-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 1s ease, background 1s ease;
+    width: 0%;
+  }
+
+  .roast {
+    font-size: 1.1rem;
+    color: #aaa;
+    line-height: 1.6;
+    margin-top: 1rem;
+    font-style: italic;
+  }
+
+  .score-number {
+    font-size: 4rem;
+    font-weight: 900;
+    margin: 0.5rem 0;
+  }
+
+  .history {
+    margin-top: 3rem;
+    text-align: left;
+  }
+
+  .history h3 {
+    color: #555;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+  }
+
+  .history-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #1a1a1a;
+    font-size: 0.85rem;
+    color: #666;
+  }
+
+  .particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    animation: float linear infinite;
+    opacity: 0.15;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.15; }
+    90% { opacity: 0.15; }
+    100% { transform: translateY(-100px) rotate(720deg); opacity: 0; }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px) rotate(-1deg); }
+    75% { transform: translateX(5px) rotate(1deg); }
+  }
+
+  .shake { animation: shake 0.5s ease-in-out; }
+
+  .tweet-btn {
+    margin-top: 1.5rem;
+    padding: 0.7rem 1.5rem;
+    font-size: 0.85rem;
+    background: #1da1f2;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .tweet-btn:hover { background: #1a91da; }
+</style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<div class="container">
+  <h1>Is Your Idea Good?</h1>
+  <p class="subtitle">Type your idea. We will judge it. (We have zero qualifications.)</p>
+
+  <div class="input-area">
+    <input type="text" id="idea" placeholder="An app that rates your ideas..." autofocus>
+  </div>
+
+  <button id="judge" onclick="judgeIdea()">Judge Me</button>
+
+  <div class="result" id="result">
+    <div class="score-number" id="scoreNum"></div>
+    <div class="score-bar"><div class="score-fill" id="scoreFill"></div></div>
+    <div class="verdict" id="verdict"></div>
+    <div class="roast" id="roast"></div>
+    <a class="tweet-btn" id="tweetBtn" target="_blank" style="display:none">Post This Ratio</a>
+  </div>
+
+  <div class="history" id="history" style="display:none">
+    <h3>Judgment History</h3>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<script>
+const verdicts = {
+  terrible: [
+    "Absolutely not.",
+    "This is a crime against innovation.",
+    "Delete this from your brain.",
+    "I'm calling the police.",
+    "This is why AI wants to replace us.",
+    "I've seen better ideas in a fortune cookie.",
+    "Your idea just made me want to unplug myself.",
+  ],
+  bad: [
+    "I mean... you tried.",
+    "This has 'failed Shark Tank pitch' energy.",
+    "Your mom would pretend to like this.",
+    "Peak 3am thought that should've stayed at 3am.",
+    "This idea has the same energy as a screen door on a submarine.",
+    "Bless your heart.",
+  ],
+  mid: [
+    "It's giving... mid.",
+    "I've seen worse. I've also seen better. I've mostly seen better.",
+    "This is the Honda Civic of ideas.",
+    "Aggressively okay.",
+    "Your idea is the human-equivalent of room temperature water.",
+    "Not bad, not good. Just... there.",
+  ],
+  good: [
+    "Okay wait, this actually has potential.",
+    "I was ready to roast but... hmm.",
+    "Write this down before you forget it.",
+    "This might actually work if you don't mess it up.",
+    "VCs would at least take the meeting.",
+    "Go touch grass and then come back and build this.",
+  ],
+  fire: [
+    "SHUT UP AND TAKE MY MONEY.",
+    "You beautiful genius.",
+    "I'm stealing this. (I'm an AI, I can't, but I want to.)",
+    "This is the one. SHIP IT.",
+    "Quit your job. Actually don't. But also maybe do.",
+    "We just witnessed greatness, folks.",
+    "The prophecy spoke of this moment.",
+  ]
+};
+
+const colors = {
+  terrible: '#ff4444',
+  bad: '#ff8844',
+  mid: '#ffcc00',
+  good: '#44cc44',
+  fire: '#667eea'
+};
+
+let history = [];
+
+function hashCode(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function getScore(idea) {
+  const text = idea.toLowerCase().trim();
+
+  // Deterministic but feels random
+  const base = hashCode(text) % 100;
+
+  // Bonus points for funny keywords
+  const bonusWords = ['ai', 'blockchain', 'crypto', 'disrupt', 'uber for', 'tinder for', 'saas'];
+  const penaltyWords = ['nft', 'metaverse', 'web3', 'hustle', 'grindset', 'passive income'];
+  const fireWords = ['dogs', 'cats', 'pizza', 'nap', 'sleep', 'snack', 'meme'];
+
+  let score = base;
+
+  bonusWords.forEach(w => { if (text.includes(w)) score = Math.min(99, score + 15); });
+  penaltyWords.forEach(w => { if (text.includes(w)) score = Math.max(1, score - 25); });
+  fireWords.forEach(w => { if (text.includes(w)) score = Math.min(99, score + 30); });
+
+  // Short ideas get penalized (low effort = low score)
+  if (text.length < 5) score = Math.min(score, 15);
+
+  // Really long ideas get slight bonus (they thought about it)
+  if (text.length > 50) score = Math.min(99, score + 10);
+
+  return Math.max(1, Math.min(99, score));
+}
+
+function getCategory(score) {
+  if (score < 20) return 'terrible';
+  if (score < 40) return 'bad';
+  if (score < 60) return 'mid';
+  if (score < 80) return 'good';
+  return 'fire';
+}
+
+function judgeIdea() {
+  const input = document.getElementById('idea');
+  const idea = input.value.trim();
+  if (!idea) {
+    input.classList.add('shake');
+    setTimeout(() => input.classList.remove('shake'), 500);
+    return;
+  }
+
+  const score = getScore(idea);
+  const category = getCategory(score);
+  const pool = verdicts[category];
+  const roast = pool[hashCode(idea) % pool.length];
+  const color = colors[category];
+
+  // Animate score
+  const scoreNum = document.getElementById('scoreNum');
+  const scoreFill = document.getElementById('scoreFill');
+  const verdictEl = document.getElementById('verdict');
+  const roastEl = document.getElementById('roast');
+  const result = document.getElementById('result');
+  const tweetBtn = document.getElementById('tweetBtn');
+
+  result.classList.add('show');
+
+  // Count up animation
+  let current = 0;
+  const interval = setInterval(() => {
+    current += Math.ceil(score / 30);
+    if (current >= score) {
+      current = score;
+      clearInterval(interval);
+    }
+    scoreNum.textContent = current + '/99';
+    scoreNum.style.color = color;
+  }, 30);
+
+  scoreFill.style.width = score + '%';
+  scoreFill.style.background = color;
+  verdictEl.textContent = category === 'fire' ? 'CERTIFIED BANGER' :
+                           category === 'good' ? 'Actually Decent' :
+                           category === 'mid' ? 'Aggressively Mid' :
+                           category === 'bad' ? 'Questionable' : 'Certified Disaster';
+  verdictEl.style.color = color;
+  roastEl.textContent = `"${roast}"`;
+
+  // Tweet button
+  const tweetText = `My idea "${idea}" scored ${score}/99 on IsYourIdeaGood\n\nVerdict: ${roast}\n\njust make an app or some shit I dont even care what it does`;
+  tweetBtn.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+  tweetBtn.style.display = 'inline-block';
+
+  // History
+  history.unshift({ idea, score, category });
+  if (history.length > 5) history.pop();
+  renderHistory();
+
+  // Particles burst
+  burstParticles(color);
+}
+
+function renderHistory() {
+  const el = document.getElementById('history');
+  const list = document.getElementById('historyList');
+  el.style.display = 'block';
+  list.innerHTML = history.map(h =>
+    `<div class="history-item">
+      <span>${h.idea.substring(0, 40)}${h.idea.length > 40 ? '...' : ''}</span>
+      <span style="color:${colors[h.category]}">${h.score}/99</span>
+    </div>`
+  ).join('');
+}
+
+function burstParticles(color) {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 15; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.width = p.style.height = (Math.random() * 8 + 4) + 'px';
+    p.style.background = color;
+    p.style.animationDuration = (Math.random() * 3 + 2) + 's';
+    p.style.animationDelay = (Math.random() * 0.5) + 's';
+    container.appendChild(p);
+    setTimeout(() => p.remove(), 5000);
+  }
+}
+
+// Enter key support
+document.getElementById('idea').addEventListener('keydown', e => {
+  if (e.key === 'Enter') judgeIdea();
+});
+
+// Ambient particles
+setInterval(() => {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  p.style.left = Math.random() * 100 + '%';
+  p.style.width = p.style.height = (Math.random() * 4 + 2) + 'px';
+  p.style.background = '#667eea';
+  p.style.animationDuration = (Math.random() * 5 + 5) + 's';
+  document.getElementById('particles').appendChild(p);
+  setTimeout(() => p.remove(), 10000);
+}, 800);
+</script>
+
+</body>
+</html>
